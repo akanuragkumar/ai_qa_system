@@ -57,7 +57,7 @@
         }
 
         .chat-box {
-            height: 400px;
+            max-height: 400px; /* Ensures scrolling for long messages */
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -132,7 +132,7 @@
         <div class="chat-header">✈️ Travel Chatbot - Singapore & Malaysia</div>
 
         <div id="chat-box" class="chat-box">
-            <div class="message bot-message">Hello Eshita! Ask me anything about Singapore & Malaysia 🇸🇬 🇲🇾</div>
+            <div class="message bot-message">Hello! Ask me anything about Singapore & Malaysia 🇸🇬 🇲🇾</div>
         </div>
 
         <div class="input-group">
@@ -152,7 +152,7 @@
         messageDiv.classList.add("message", role === "user" ? "user-message" : "bot-message");
         messageDiv.textContent = text;
         chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        scrollToBottom();  // Ensure chat box auto-scrolls
     }
 
     function sendMessage() {
@@ -168,6 +168,7 @@
         typingIndicator.classList.add("typing-indicator");
         typingIndicator.textContent = "AI is typing...";
         chatBox.appendChild(typingIndicator);
+        scrollToBottom();  // Scroll when typing indicator appears
 
         fetch("/api/query/", {
             method: "POST",
@@ -191,6 +192,12 @@
         if (event.key === "Enter") {
             sendMessage();
         }
+    }
+
+    // Auto-scroll to bottom when new messages arrive
+    function scrollToBottom() {
+        let chatBox = document.getElementById("chat-box");
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 </script>
 

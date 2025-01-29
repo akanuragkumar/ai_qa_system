@@ -68,7 +68,7 @@ class QueryView(APIView):
         completion_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=chat_history,
-            max_tokens=150
+            max_tokens=500
         )
 
         answer = completion_response.choices[0].message.content.strip()
