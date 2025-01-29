@@ -44,7 +44,7 @@ This is a Django-based web application that integrates OpenAI’s GPT model to c
 
 1.Clone the repository:
 
-git clone https://github.com/your-username/ai-qa-system.git
+git clone [https://github.com/your-username/ai-qa-system.git](https://github.com/akanuragkumar/ai_qa_system.git)
 
 cd ai-qa-system
 
