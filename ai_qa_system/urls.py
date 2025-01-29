@@ -15,6 +15,9 @@ Including another URLconf
 """
 from django.urls import path, include
 
+from knowledge.views import chat_view
+
 urlpatterns = [
     path('api/', include('knowledge.urls')),
+    path("chat/", chat_view, name="chat"),
 ]

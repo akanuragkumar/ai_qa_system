@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from openai import OpenAI
@@ -77,3 +78,7 @@ class QueryView(APIView):
         Message.objects.create(chat_session=chat_session, role="assistant", content=answer)
 
         return Response({"answer": answer, "context": context, "session_id": session_id})
+
+
+def chat_view(request):
+    return render(request, "chat.html")
