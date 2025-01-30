@@ -132,7 +132,7 @@
         <div class="chat-header">✈️ Travel Chatbot - Singapore & Malaysia</div>
 
         <div id="chat-box" class="chat-box">
-            <div class="message bot-message">Hello Eshita! Ask me anything about Singapore & Malaysia 🇸🇬 🇲🇾</div>
+            <div class="message bot-message">Hello! Ask me anything about Singapore & Malaysia 🇸🇬 🇲🇾</div>
         </div>
 
         <div class="input-group">
@@ -145,6 +145,12 @@
 <!-- JavaScript for AJAX Chat -->
 <script>
     const sessionId = localStorage.getItem("session_id") || null;
+
+    // Function to get the CSRF token from the cookie
+    function getCsrfToken() {
+        const csrfToken = document.cookie.match(/csrftoken=([^;]+)/);
+        return csrfToken ? csrfToken[1] : null;
+    }
 
     function appendMessage(role, text) {
         let chatBox = document.getElementById("chat-box");
@@ -172,14 +178,33 @@
 
         fetch("/api/query/", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCsrfToken()  // Add CSRF token here
+            },
             body: JSON.stringify({ query: query, session_id: sessionId })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                // If status is 429 (Too Many Requests)
+                if (response.status === 429) {
+                    chatBox.removeChild(typingIndicator);
+                    appendMessage("bot", "You have reached the maximum query limit. Please try again in an hour.");
+                } else {
+                    // Handle other errors
+                    chatBox.removeChild(typingIndicator);
+                    appendMessage("bot", "Sorry, something went wrong. Try again!");
+                }
+            } else {
+                return response.json();
+            }
+        })
         .then(data => {
-            chatBox.removeChild(typingIndicator);
-            appendMessage("bot", data.answer);
-            if (data.session_id) localStorage.setItem("session_id", data.session_id);
+            if (data) {
+                chatBox.removeChild(typingIndicator);
+                appendMessage("bot", data.answer);
+                if (data.session_id) localStorage.setItem("session_id", data.session_id);
+            }
         })
         .catch(error => {
             console.error("Error:", error);

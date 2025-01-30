@@ -1,8 +1,13 @@
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from openai import OpenAI
 from django.conf import settings
+from django.utils.timezone import now, timedelta
 
 from knowledge.models import ChatSession, Message
 
@@ -14,7 +19,12 @@ from knowledge.utils import search_similar_documents
 TOKEN_LIMIT = 3000
 
 
+MAX_QUERIES_PER_HOUR = 10  # Set your limit
+
 class QueryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @method_decorator(csrf_exempt)
     def post(self, request):
         query = request.data.get("query")
         session_id = request.data.get("session_id")
@@ -28,6 +38,20 @@ class QueryView(APIView):
             session_id = str(chat_session.id)  # Ensure it returns a string
         else:
             chat_session, _ = ChatSession.objects.get_or_create(id=session_id)
+
+        # Get current timestamp and time 1 hour ago
+        one_hour_ago = now() - timedelta(hours=1)
+
+        # Count messages sent by the user in the last hour
+        user_messages_last_hour = Message.objects.filter(
+            chat_session=chat_session,
+            role="user",
+            created_at__gte=one_hour_ago
+        ).count()
+
+        # Check if user exceeded the limit
+        if user_messages_last_hour >= MAX_QUERIES_PER_HOUR:
+            return Response({"error": "Query limit reached. Try again in an hour."}, status=429)
 
         # Fetch all previous messages in the session
         messages = Message.objects.filter(chat_session=chat_session).order_by("created_at")
@@ -80,5 +104,12 @@ class QueryView(APIView):
         return Response({"answer": answer, "context": context, "session_id": session_id})
 
 
+@login_required
 def chat_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login')  # Redirect to login if session expires
     return render(request, "chat.html")
+
+
+def home(request):
+    return render(request, "home.html")
