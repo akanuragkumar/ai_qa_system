@@ -153,12 +153,33 @@
     }
 
     function appendMessage(role, text) {
-        let chatBox = document.getElementById("chat-box");
-        let messageDiv = document.createElement("div");
-        messageDiv.classList.add("message", role === "user" ? "user-message" : "bot-message");
+    let chatBox = document.getElementById("chat-box");
+    let messageDiv = document.createElement("div");
+    messageDiv.classList.add("message", role === "user" ? "user-message" : "bot-message");
+
+    // Use innerHTML to render formatted responses
+    if (role === "bot") {
+        messageDiv.innerHTML = formatResponse(text);
+    } else {
         messageDiv.textContent = text;
-        chatBox.appendChild(messageDiv);
-        scrollToBottom();  // Ensure chat box auto-scrolls
+    }
+
+    chatBox.appendChild(messageDiv);
+    scrollToBottom();
+    }
+
+    // Function to format AI response
+    function formatResponse(text) {
+    return text
+        .replace(/\n/g, "<br>")  // Preserve line breaks
+        .replace(/```python([\s\S]*?)```/g, '<pre><code class="language-python">$1</code></pre>')  // Python code blocks
+        .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>') // Generic code blocks
+        .replace(/###\s(.*?)(<br>|$)/g, "<h3>$1</h3>")  // Format section headings
+        .replace(/##\s(.*?)(<br>|$)/g, "<h2>$1</h2>")  // Format larger headings
+        .replace(/#\s(.*?)(<br>|$)/g, "<h1>$1</h1>")  // Format main headings
+        .replace(/`(.*?)`/g, "<code>$1</code>")  // Inline code formatting
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")  // Bold text
+        .replace(/\*(.*?)\*/g, "<em>$1</em>");  // Italics
     }
 
     function sendMessage() {
