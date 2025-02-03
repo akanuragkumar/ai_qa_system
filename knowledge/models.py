@@ -21,17 +21,23 @@ class VectorField(models.Field):
 
 class Document(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=255)
-    content = models.TextField()
+    title = models.CharField(max_length=255)  # Function/Class Name
+    content = models.TextField()  # Actual function/class code
+    file_path = models.CharField(max_length=500)  # Path to the source file
     created_at = models.DateTimeField(auto_now_add=True)
-    embedding = VectorField(dimensions=1536, null=True, blank=True)
+    embedding = VectorField(dimensions=1536, null=True, blank=True)  # OpenAI Embedding
     chunk_id = models.CharField(max_length=255, unique=True)
+    docstring = models.TextField(null=True, blank=True)  # Extracted docstring (if available)
 
     def __str__(self):
         return self.title
 
     class Meta:
         """Meta Information."""
+        indexes = [
+            models.Index(fields=["chunk_id"]),  # Use B-tree for chunk_id
+            models.Index(fields=["file_path"]),  # B-tree for file_path
+        ]
 
         db_table = 'document'
 
