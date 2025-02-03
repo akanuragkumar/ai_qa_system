@@ -1,6 +1,28 @@
-Django==4.2.16
-djangorestframework==3.15.2
-openai==1.60.0
+# Django and related packages
+Django>=4.0,<5.0
+
+# OpenAI SDK for API interactions
+openai>=1.0,<2.0
+
+# Gensim for Word2Vec and other NLP tasks
+gensim>=4.0,<5.0
+
+# SpaCy for natural language processing
+spacy>=3.0,<4.0
+en_core_web_md @ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.0.0/en_core_web_md-3.0.0-py3-none-any.whl
+
+# PostgreSQL database support (if using PostgreSQL)
+psycopg2-binary>=2.9,<3.0
+
+# Django REST framework for API views
+djangorestframework>=3.12,<4.0
+
+# Tiktoken for token encoding (used with OpenAI)
+tiktoken>=0.3,<1.0
+
+# Other dependencies
+ast>=4.0,<5.0
+os>=0.1,<1.0
+pickle>=4.0,<5.0
 python-decouple==3.8
-psycopg2-binary==2.9.9
-tiktoken==0.8.0
+openai==1.60.0
