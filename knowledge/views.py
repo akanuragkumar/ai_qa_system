@@ -129,7 +129,7 @@ class QueryView(APIView):
         # AI Response
         try:
             completion_response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 messages=chat_history,
                 max_tokens=500
             )
