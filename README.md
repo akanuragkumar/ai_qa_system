@@ -140,11 +140,3 @@ For production deployment, ensure the following:
 -   Set up a PostgreSQL database and configure the settings accordingly.
 
 -   Use environment variables to manage sensitive information.
-
-### Contributing
-
-Contributions are welcome! Please read the [Contributing Guidelines](https://kimi.ai/chat/CONTRIBUTING.md) for more information.
-
-### License
-
-This project is licensed under the MIT License - see the [LICENSE](https://kimi.ai/chat/LICENSE) file for details.
