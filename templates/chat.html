@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Chatbot - Your Personal coding pal</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 for Styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* Animated Gradient Background */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(-45deg, #1e3c72, #2a5298, #0f2027);
+            background-size: 400% 400%;
+            animation: gradientAnimation 8s ease infinite;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Chat Container */
+        .chat-container {
+            max-width: 500px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+            color: white;
+            position: relative;
+            z-index: 10;
+        }
+
+        .chat-header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .chat-box {
+            max-height: 400px; /* Ensures scrolling for long messages */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 12px;
+            margin: 5px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+
+        .user-message {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            align-self: flex-start;
+        }
+
+        .typing-indicator {
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-group {
+            margin-top: 10px;
+        }
+
+        .form-control {
+            border-radius: 30px;
+            padding: 12px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn {
+            border-radius: 30px;
+            background: #ff9800;
+            color: white;
+            border: none;
+        }
+
+        .btn:hover {
+            background: #e68900;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="chat-container">
+        <div class="chat-header">✈️Coding Chatbot - Get Code Insights</div>
+
+        <div id="chat-box" class="chat-box">
+            <div class="message bot-message">Hello! Ask me anything about your codebase!</div>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="user-input" class="form-control" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()" class="btn">➤</button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for AJAX Chat -->
+<script>
+    const sessionId = localStorage.getItem("session_id") || null;
+
+    // Function to get the CSRF token from the cookie
+    function getCsrfToken() {
+        const csrfToken = document.cookie.match(/csrftoken=([^;]+)/);
+        return csrfToken ? csrfToken[1] : null;
+    }
+
+    function appendMessage(role, text) {
+        let chatBox = document.getElementById("chat-box");
+        let messageDiv = document.createElement("div");
+        messageDiv.classList.add("message", role === "user" ? "user-message" : "bot-message");
+        messageDiv.textContent = text;
+        chatBox.appendChild(messageDiv);
+        scrollToBottom();  // Ensure chat box auto-scrolls
+    }
+
+    function sendMessage() {
+        let userInput = document.getElementById("user-input");
+        let query = userInput.value.trim();
+        if (!query) return;
+
+        appendMessage("user", query);
+        userInput.value = "";
+
+        let chatBox = document.getElementById("chat-box");
+        let typingIndicator = document.createElement("div");
+        typingIndicator.classList.add("typing-indicator");
+        typingIndicator.textContent = "AI is typing...";
+        chatBox.appendChild(typingIndicator);
+        scrollToBottom();  // Scroll when typing indicator appears
+
+        fetch("/api/query/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCsrfToken()  // Add CSRF token here
+            },
+            body: JSON.stringify({ query: query, session_id: sessionId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                // If status is 429 (Too Many Requests)
+                if (response.status === 429) {
+                    chatBox.removeChild(typingIndicator);
+                    appendMessage("bot", "You have reached the maximum query limit. Please try again in an hour.");
+                } else {
+                    // Handle other errors
+                    chatBox.removeChild(typingIndicator);
+                    appendMessage("bot", "Sorry, something went wrong. Try again!");
+                }
+            } else {
+                return response.json();
+            }
+        })
+        .then(data => {
+            if (data) {
+                chatBox.removeChild(typingIndicator);
+                appendMessage("bot", data.answer);
+                if (data.session_id) localStorage.setItem("session_id", data.session_id);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            chatBox.removeChild(typingIndicator);
+            appendMessage("bot", "Sorry, something went wrong. Try again!");
+        });
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    }
+
+    // Auto-scroll to bottom when new messages arrive
+    function scrollToBottom() {
+        let chatBox = document.getElementById("chat-box");
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
