@@ -1,20 +1,42 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Use a smaller base image for better performance and security
+FROM python:3.9-alpine
 
-# Set the working directory in the container
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    DJANGO_SETTINGS_MODULE=ai_qa_system.settings \
+    PATH="/scripts:$PATH"
+
+# Set working directory
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app/
+# Install system dependencies
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    postgresql-dev \
+    libpq \
+    bash
+
+# Create a virtual environment for better dependency isolation
+RUN python -m venv /venv
+ENV PATH="/venv/bin:$PATH"
+
+# Copy only requirements first for efficient caching
+COPY requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port that Django will run on
+# Copy the application code
+COPY . .
+
+# Create a scripts directory for startup scripts
+RUN mkdir /scripts
+COPY ./entrypoint.sh /scripts/entrypoint.sh
+RUN chmod +x /scripts/entrypoint.sh
+
+# Expose the port Gunicorn will run on
 EXPOSE 8000
 
-# Set the environment variable for Django settings module
-ENV DJANGO_SETTINGS_MODULE=ai_qa_system.settings
-
-# Apply database migrations and start the development server
-CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+# Run entrypoint script
+CMD ["entrypoint.sh"]
