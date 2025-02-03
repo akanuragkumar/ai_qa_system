@@ -1,89 +1,150 @@
-**AI-powered Question Answering System with Django and OpenAI**
+AI QA System
+============
 
-This is a Django-based web application that integrates OpenAI’s GPT model to create an AI-powered question answering system. The system provides users with accurate, context-aware responses based on historical conversation and relevant documents stored in a database.
+Overview
+--------
 
-**Features:**
+The AI QA System is a Django-based web application designed to help users interact with their code repositories through natural language queries. Users can upload their code repositories and ask questions about the code, such as "Where is this function?" or "Show me similar functions." The system leverages AI to provide intelligent and context-aware responses.
 
-•**Django Backend**: A robust backend built with Django REST Framework to handle API requests and responses.
+Features
+--------
 
-•**OpenAI Integration**: Uses OpenAI’s GPT model to generate intelligent responses based on the context of previous conversations and relevant documents.
+-   Code Repository Upload: Users can upload their code repositories for analysis.
 
-•**Session-based Conversations**: Maintains chat sessions to allow for ongoing conversations with context retention across multiple interactions.
+-   Natural Language Queries: Users can ask questions about the code in natural language.
 
-•**Document Embedding**: Documents are embedded using OpenAI’s text-embedding-ada-002 model and stored in the database for similarity search.
+-   AI-Powered Responses: The system uses AI to understand and respond to user queries.
 
-•**Efficient Token Management**: Automatically handles long conversation histories by summarizing older messages when the token limit is exceeded.
+-   User Authentication: Secure user authentication and session management.
 
-•**Document Search**: Retrieves relevant documents based on the user’s query using embeddings and vector-based similarity search.
+-   Session Management: Auto-logout after 15 minutes of inactivity for security.
 
-**Tech Stack:**
+Quick Setup
+-----------
 
-•**Backend**: Django, Django REST Framework
+### Prerequisites
 
-•**AI Model**: OpenAI GPT-3.5 for completions and text embeddings
+-   Docker
 
-•**Database**: PostgreSQL (for storing chat sessions, messages, and documents)
+-   Docker Compose
 
-•**Containerization**: Docker for easy deployment
+-   Python 3.9
 
-•**Environment Management**: .env file for managing API keys and configurations
+-   PostgreSQL
 
-**How It Works:**
+### Installation
 
-1.**User Query**: Users can send queries to the system via a REST API. Each query is processed to find the relevant context from previous messages and documents.
+1.  Clone the Repository:
 
-2.**Chat Session Management**: Each interaction is stored as part of a chat session, with the history of previous messages being used to provide more accurate answers.
+    bashCopy
 
-3.**Embedding Search**: The system generates embeddings for documents and user queries, then performs a similarity search to retrieve relevant content.
+    ```
+    https://github.com/akanuragkumar/ai_qa_system.git
+    ```
 
-4.**Response Generation**: The relevant documents and chat history are passed into the OpenAI GPT model to generate a response to the user’s query.
+2.  Set Up Environment Variables: Create a `.env` file in the root directory with the following content:
 
-5.**Efficient Handling**: If the conversation becomes too long (exceeding OpenAI’s token limit), older messages are summarized and retained in the session.
+    envCopy
 
-**Installation Instructions:**
+    ```
+    SECRET_KEY=your_secret_key_here
+    DATABASE_NAME=your_database_name
+    DATABASE_USER=your_database_user
+    DATABASE_PASSWORD=your_database_password
+    DATABASE_HOST=your_database_host
+    DATABASE_PORT=your_database_port
+    OPENAI_API_KEY=your_openai_api_key
+    ```
 
-1.Clone the repository:
+3.  Build and Run the Docker Containers:
 
-git clone https://github.com/akanuragkumar/ai_qa_system.git
+    bashCopy
 
-cd ai-qa-system
+    ```
+    docker-compose up --build
+    ```
 
-2.Set up a virtual environment and install dependencies:
+4.  Ingest Codebase:
 
-python3 -m venv venv
+    bashCopy
 
-source venv/bin/activate
+    ```
+    docker-compose run web python manage.py ingest_code
+    ```
 
-pip install -r requirements.txt
+5.  Run the Development Server:
 
-3.Create a .env file and add your OpenAI API key and other settings:
+    bashCopy
 
-_OPENAI_\_API\_KEY=your\_openai\_api\_key
+    ```
+    docker-compose run web python manage.py runserver
+    ```
 
-_DJANGO_\_SETTINGS\_MODULE=your\_project.settings
+6.  Access the Application: Open your web browser and navigate to `http://127.0.0.1:8000/`.
 
-4.Run database migrations:
+### Usage
 
-python manage.py migrate
+1.  Homepage:
 
-5.Start the Django development server:
+    -   Navigate to `http://127.0.0.1:8000/`. This will guide you to the registration page.
 
-python manage.py runserver
+    -   Register an account and log in.
 
-**Docker Setup:**
+2.  Chat Interface:
 
-To run the project in Docker, follow these steps:
+    -   After logging in, you will be redirected to `http://127.0.0.1:8000/chat/`.
 
-1.Build the Docker image:
+    -   Here, you can start asking questions about your codebase.
 
-docker-compose build
+### Database Setup
 
-2.Start the application:
+1.  Run PostgreSQL Extensions:
 
-docker-compose up
+    -   Access the PostgreSQL shell:
 
-This will run the application inside Docker containers with all environment variables loaded from the .env file.
+        bashCopy
 
-**License:**
+        ```
+        docker-compose run web psql -h DATABASE_HOST -U DATABASE_USER -d DATABASE_NAME
+        ```
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+    -   Run the following commands to create the necessary extensions:
+
+        sqlCopy
+
+        ```
+        CREATE EXTENSION IF NOT EXISTS pg_trgm;
+        CREATE EXTENSION IF NOT EXISTS vector;
+        ```
+
+### Development
+
+1.  Run Migrations:
+
+    bashCopy
+
+    ```
+    docker-compose run web python manage.py migrate
+    ```
+
+### Deployment
+
+For production deployment, ensure the following:
+
+-   Set `DEBUG` to `False` in the settings file.
+
+-   Configure `ALLOWED_HOSTS` appropriately.
+
+-   Use a secure web server like Nginx or Gunicorn.
+
+-   Set up a PostgreSQL database and configure the settings accordingly.
+
+-   Use environment variables to manage sensitive information.
+
+### Contributing
+
+Contributions are welcome! Please read the [Contributing Guidelines](https://kimi.ai/chat/CONTRIBUTING.md) for more information.
+
+### License
+
+This project is licensed under the MIT License - see the [LICENSE](https://kimi.ai/chat/LICENSE) file for details.
