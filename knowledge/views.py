@@ -70,14 +70,14 @@ class QueryView(APIView):
         chat_history = [{"role": msg.role, "content": msg.content} for msg in messages]
 
         # Handle token limit
-        encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+        encoding = tiktoken.encoding_for_model("gpt-4o-mini")
         total_tokens = sum(len(encoding.encode(msg["content"])) for msg in chat_history)
 
         if total_tokens > TOKEN_LIMIT:
             summary_prompt = f"Summarize the chat while retaining key details:\n\n{chat_history}"
             try:
                 summary_response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o-mini",
                     messages=[{"role": "system", "content": summary_prompt}],
                     max_tokens=300
                 )
